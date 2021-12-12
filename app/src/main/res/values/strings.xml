@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Custom View</string>
+    <string name="spending_text">Потрачено: %1$.2f &#8381;</string>
 </resources>
