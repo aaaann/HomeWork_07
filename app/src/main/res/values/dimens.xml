@@ -3,4 +3,7 @@
     <dimen name="default_chart_size">200dp</dimen>
     <dimen name="percent_text_size">16sp</dimen>
     <dimen name="percent_text_offset">30dp</dimen>
+    <dimen name="x_mark_interval">64dp</dimen>
+    <dimen name="y_mark_interval">36dp</dimen>
+    <dimen name="axis_paint_width">2dp</dimen>
 </resources>

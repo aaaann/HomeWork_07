@@ -16,5 +16,6 @@
     <color name="yellow_400">#FFEA00</color>
     <color name="black">#FF000000</color>
     <color name="gray_300">#E0E0E0</color>
+    <color name="blue_gray_400">#78909C</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
