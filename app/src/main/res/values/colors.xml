@@ -9,8 +9,10 @@
     <color name="green_700">#00C853</color>
     <color name="lime_500">#CDDC39</color>
     <color name="orange_500">#FF5722</color>
+    <color name="red_50">#FFEBEE</color>
     <color name="red_100">#FF8A80</color>
     <color name="red_700">#D50000</color>
+    <color name="red_900">#B71C1C</color>
     <color name="amber_500">#FFC107</color>
     <color name="yellow_200">#FFF59D</color>
     <color name="yellow_400">#FFEA00</color>

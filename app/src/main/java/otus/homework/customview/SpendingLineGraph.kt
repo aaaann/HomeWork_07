@@ -3,8 +3,11 @@ package otus.homework.customview
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
+import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.PointF
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -36,6 +39,18 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     @ColorInt
     private var yGridPaintColor = 0
 
+    private val gradient = LinearGradient(
+        paddingStart.toFloat(),
+        paddingTop.toFloat(),
+        paddingStart.toFloat(),
+        (paddingTop + realYAxisLength).toFloat(),
+        context.resources.getColor(R.color.red_900, context.theme),
+        context.resources.getColor(R.color.red_100, context.theme),
+        Shader.TileMode.CLAMP
+    )
+
+    private val gradientPath = Path()
+
     private val axisPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -60,6 +75,12 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
+    }
+
+    private val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        alpha = 100
+        shader = gradient
     }
 
     init {
@@ -168,7 +189,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 2 to 0f,
                 3 to 12456f,
                 4 to 6080f,
-                5 to 500f
+                5 to 24879f
             ),
             R.color.light_green_200 to mapOf(
                 0 to 800f,
@@ -275,6 +296,23 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 linePaint
             )
         }
+
+        drawGradient(markers)
+    }
+
+    private fun Canvas.drawGradient(markers: List<PointF>) {
+        gradientPath.reset()
+        gradientPath.moveTo(paddingStart.toFloat(), (paddingTop + realYAxisLength).toFloat())
+
+        for (marker in markers) {
+            gradientPath.lineTo(marker.x, marker.y)
+        }
+
+        // close the path
+        gradientPath.lineTo(markers.last().x, (paddingTop + realYAxisLength).toFloat())
+        gradientPath.lineTo(paddingStart.toFloat(), (paddingTop + realYAxisLength).toFloat())
+
+        drawPath(gradientPath, gradientPaint)
     }
 
     private companion object {
