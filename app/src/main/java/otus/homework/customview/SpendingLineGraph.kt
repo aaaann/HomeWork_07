@@ -4,21 +4,25 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
+import android.graphics.PointF
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.core.content.res.use
 
 class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
+    private var xMarksCount = 0
+    private var yMarksCount = 0
+    private val markersXCoordinates = mutableListOf<Float>()
+    private val markersWithColors = mutableListOf<Pair<Int, List<PointF>>>()
+    private var spendingInterval = 5000f //TODO: maybe add to styleable attrs
+
     private var xMarkInterval = 0
     private var yMarkInterval = 0
     private var axisPaintWidth = 0f
-
-    private var xMarksCount = 0
-    private var yMarksCount = 0
-    private var spendingInterval = 5.000 //TODO: maybe add to styleable attrs
 
     var realXAxisLength = 0
     var realYAxisLength = 0
@@ -34,6 +38,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private val axisPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
     }
 
     private val verticalGridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -50,6 +55,11 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
             floatArrayOf(30F, 5F, 5F, 5F),
             0F
         )
+    }
+
+    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
     }
 
     init {
@@ -79,17 +89,18 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         axisPaint.apply {
             strokeWidth = axisPaintWidth
             color = axisPaintColor
-            strokeCap = Paint.Cap.ROUND
         }
 
         verticalGridPaint.apply {
-            // strokeWidth = axisPaintWidth / 4
             color = xGridPaintColor
         }
 
         horizontalGridPaint.apply {
-            // strokeWidth = axisPaintWidth / 4
             color = yGridPaintColor
+        }
+
+        linePaint.apply {
+            strokeWidth = axisPaintWidth * 2
         }
     }
 
@@ -137,6 +148,52 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
         xMarkInterval = realXAxisLength / (xMarksCount - 1)
         yMarkInterval = realYAxisLength / (yMarksCount - 1)
+
+        calculateMarkersXCoordinates()
+        fillMarkersWithColors()
+    }
+
+    private fun calculateMarkersXCoordinates() {
+        for (i in 0 until xMarksCount) {
+            markersXCoordinates.add((paddingStart + xMarkInterval * i).toFloat())
+        }
+    }
+
+    private fun fillMarkersWithColors() {
+        // TODO: create based on real data
+        val categoriesSpending = mapOf(
+            R.color.red_700 to mapOf(
+                0 to 5100f,
+                1 to 0f,
+                2 to 0f,
+                3 to 12456f,
+                4 to 6080f,
+                5 to 500f
+            ),
+            R.color.light_green_200 to mapOf(
+                0 to 800f,
+                1 to 3800f,
+                2 to 45f,
+                3 to 2367f,
+                4 to 0f,
+                5 to 1680f
+            )
+        )
+        categoriesSpending.forEach {
+            calculateMarkers(it.key, it.value)
+        }
+    }
+
+    private fun calculateMarkers(colorRes: Int, categorySpending: Map<Int, Float>) {
+        val categoryMarkers = mutableListOf<PointF>()
+        markersXCoordinates.forEachIndexed { index, xPos ->
+            // найти трату на дату [index]
+            val daySpending = categorySpending[index] ?: 0f
+
+            val yPos = paddingTop + realYAxisLength - ((daySpending / spendingInterval) * yMarkInterval)
+            categoryMarkers.add(PointF(xPos, yPos))
+        }
+        markersWithColors.add(Pair(colorRes, categoryMarkers))
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -145,6 +202,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         canvas?.apply {
             drawAxis()
             drawGrid()
+            drawAllLines()
         }
     }
 
@@ -190,6 +248,32 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 horizontalGridPaint
             )
             startY += yMarkInterval
+        }
+    }
+
+    private fun Canvas.drawAllLines() {
+        markersWithColors.forEach {
+            drawMarkersAndLine(it.first, it.second)
+        }
+    }
+
+    private fun Canvas.drawMarkersAndLine(@ColorRes lineColor: Int, markers: List<PointF>) {
+        linePaint.apply { color = context.resources.getColor(lineColor, context.theme) }
+        var previousMarker: PointF? = null
+        for (marker in markers) {
+            if (previousMarker != null) {
+                // draw the line
+                drawLine(previousMarker.x, previousMarker.y, marker.x, marker.y, linePaint)
+            }
+
+            previousMarker = marker
+            // draw the marker
+            drawCircle(
+                marker.x,
+                marker.y,
+                5f,
+                linePaint
+            )
         }
     }
 
