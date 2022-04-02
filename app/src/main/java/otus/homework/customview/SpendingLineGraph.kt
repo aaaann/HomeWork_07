@@ -20,8 +20,8 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private var yMarksCount = 0
     private var spendingInterval = 5.000 //TODO: maybe add to styleable attrs
 
-    var realXAxisLength = 0f
-    var realYAxisLength = 0f
+    var realXAxisLength = 0
+    var realYAxisLength = 0
 
     @ColorInt
     private var axisPaintColor = 0
@@ -132,13 +132,15 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // calculate xMarkInterval, yMarkInterval and others for draw
+        realXAxisLength = measuredWidth - paddingStart - paddingEnd
+        realYAxisLength = measuredHeight - paddingTop - paddingBottom
+
+        xMarkInterval = realXAxisLength / (xMarksCount - 1)
+        yMarkInterval = realYAxisLength / (yMarksCount - 1)
     }
 
     override fun onDraw(canvas: Canvas?) {
         Log.d(TAG, "measuredWidth: $measuredWidth, measuredHeight: $measuredHeight")
-        realXAxisLength = (measuredWidth - paddingStart - paddingEnd).toFloat()
-        realYAxisLength = (measuredHeight - paddingTop - paddingBottom).toFloat()
 
         canvas?.apply {
             drawAxis()
@@ -149,16 +151,16 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private fun Canvas.drawAxis() {
         drawLine(
             paddingStart.toFloat(),
-            paddingTop + realYAxisLength,
-            paddingStart + realXAxisLength,
-            paddingTop + realYAxisLength,
+            paddingTop + realYAxisLength.toFloat(),
+            paddingStart + realXAxisLength.toFloat(),
+            paddingTop + realYAxisLength.toFloat(),
             axisPaint
         )
         drawLine(
-            paddingStart + realXAxisLength,
+            paddingStart + realXAxisLength.toFloat(),
             paddingTop.toFloat(),
-            paddingStart + realXAxisLength,
-            paddingTop + realYAxisLength,
+            paddingStart + realXAxisLength.toFloat(),
+            paddingTop + realYAxisLength.toFloat(),
             axisPaint
         )
     }
@@ -171,7 +173,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 startX.toFloat(),
                 paddingTop.toFloat(),
                 startX.toFloat(),
-                paddingTop + realYAxisLength,
+                paddingTop + realYAxisLength.toFloat(),
                 verticalGridPaint
             )
             startX += xMarkInterval
@@ -183,7 +185,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
             drawLine(
                 paddingStart.toFloat(),
                 startY.toFloat(),
-                paddingStart + realXAxisLength,
+                paddingStart + realXAxisLength.toFloat(),
                 startY.toFloat(),
                 horizontalGridPaint
             )
