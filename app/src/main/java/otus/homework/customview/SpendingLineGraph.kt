@@ -15,6 +15,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.res.use
 import otus.homework.customview.SpendingLineGraphHelper.SPENDING_INTERVAL
+import otus.homework.customview.SpendingLineGraphHelper.calculateXMarksCount
 import otus.homework.customview.SpendingLineGraphHelper.calculateYMarksCount
 
 class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
@@ -132,7 +133,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         categoriesSpending.addAll(spending)
 
         // calculate xMarksCount, yMarksCount
-        xMarksCount = 6 // TODO: calculate from data
+        xMarksCount = calculateXMarksCount(spending)
         yMarksCount = calculateYMarksCount(spending)
         requestLayout()
         invalidate()
@@ -193,7 +194,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 1 to 0f,
                 2 to 0f,
                 3 to 5456f,
-                4 to 6080f,
+                4 to 10900f,
                 5 to 7879f
             ),
             R.color.light_green_200 to mapOf(
