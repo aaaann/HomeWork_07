@@ -4,13 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var repository: SpendingRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val repository = SpendingRepositoryImpl(ResourceWrapperImpl(applicationContext))
+        (application as AppDelegate).appComponent.inject(this)
 
         val pieChart = findViewById<PieChartView>(R.id.pie_chart)
         pieChart.setData(repository.getCategoriesOverallSpending())
