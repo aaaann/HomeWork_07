@@ -5,13 +5,25 @@ import com.google.gson.reflect.TypeToken
 import otus.homework.customview.Category.Companion.toCategory
 
 class SpendingRepositoryImpl(private val resourceWrapper: ResourceWrapper) : SpendingRepository {
-    override fun getCategories(): List<CategoryItem> {
+    override fun getCategoriesOverallSpending(): List<CategoryOverallSpending> {
         return getSpending()
-            .map { CategoryItem(it.category.toCategory(), it.amount) }
+            .map { CategoryOverallSpending(it.category.toCategory(), it.amount) }
             .groupingBy { it.category }.reduce { _, accumulator, element ->
-                CategoryItem(
+                CategoryOverallSpending(
                     accumulator.category,
                     accumulator.amount + element.amount
+                )
+            }.values.toList()
+    }
+
+    override fun getCategoriesSpendingPerDate(): List<CategorySpending> {
+        return getSpending()
+            .map { CategorySpending(it.category.toCategory(), it.amount, it.time) }
+            .groupingBy { listOf(it.category, it.time) }.reduce { _, accumulator, element ->
+                CategorySpending(
+                    accumulator.category,
+                    accumulator.amount + element.amount,
+                    accumulator.time
                 )
             }.values.toList()
     }

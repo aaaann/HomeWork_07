@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class CategoryItem(
+data class CategoryOverallSpending(
     val category: Category,
     val amount: Float
 ) : Parcelable

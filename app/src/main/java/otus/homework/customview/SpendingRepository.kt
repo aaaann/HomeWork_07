@@ -1,5 +1,6 @@
 package otus.homework.customview
 
 interface SpendingRepository {
-    fun getCategories(): List<CategoryItem>
+    fun getCategoriesOverallSpending(): List<CategoryOverallSpending>
+    fun getCategoriesSpendingPerDate(): List<CategorySpending>
 }

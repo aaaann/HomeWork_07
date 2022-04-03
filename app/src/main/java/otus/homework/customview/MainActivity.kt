@@ -13,9 +13,9 @@ class MainActivity : AppCompatActivity() {
         val repository = SpendingRepositoryImpl(ResourceWrapperImpl(applicationContext))
 
         val pieChart = findViewById<PieChartView>(R.id.pie_chart)
-        pieChart.setData(repository.getCategories())
+        pieChart.setData(repository.getCategoriesOverallSpending())
         pieChart.setSectorClickListener(object : PieChartView.OnSectorClickListener {
-            override fun onSectorSelect(category: CategoryItem) {
+            override fun onSectorSelect(category: CategoryOverallSpending) {
                 CategorySpendingBottomSheet.newInstance(category)
                     .show(supportFragmentManager, CategorySpendingBottomSheet.TAG)
             }

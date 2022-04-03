@@ -8,7 +8,9 @@ class SpendingDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spending_details)
 
+        val repository = SpendingRepositoryImpl(ResourceWrapperImpl(applicationContext)) // TODO: inject with DI
+
         val spendingGraph = findViewById<SpendingLineGraph>(R.id.spending_graph)
-        spendingGraph.setData()
+        spendingGraph.setData(repository.getCategoriesSpendingPerDate())
     }
 }

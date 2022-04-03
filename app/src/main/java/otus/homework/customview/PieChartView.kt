@@ -25,7 +25,7 @@ class PieChartView(
     attributeSet: AttributeSet?
 ) : View(context, attributeSet) {
 
-    private var categories: List<CategoryItem> = emptyList()
+    private var categories: List<CategoryOverallSpending> = emptyList()
 
     private var thickness: Int = 0
     private var colorsList = emptyList<Int>()
@@ -68,7 +68,7 @@ class PieChartView(
         }
     }
 
-    fun setData(categories: List<CategoryItem>) {
+    fun setData(categories: List<CategoryOverallSpending>) {
         this.categories = categories
         configureSectorsColors()
         invalidate()
@@ -261,7 +261,7 @@ class PieChartView(
     }
 
     interface OnSectorClickListener {
-        fun onSectorSelect(category: CategoryItem)
+        fun onSectorSelect(category: CategoryOverallSpending)
     }
 
     override fun onSaveInstanceState(): Parcelable? {

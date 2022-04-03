@@ -14,14 +14,17 @@ import android.view.View
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.res.use
+import otus.homework.customview.SpendingLineGraphHelper.SPENDING_INTERVAL
+import otus.homework.customview.SpendingLineGraphHelper.calculateYMarksCount
 
 class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
+
+    private val categoriesSpending = mutableListOf<CategorySpending>()
 
     private var xMarksCount = 0
     private var yMarksCount = 0
     private val markersXCoordinates = mutableListOf<Float>()
     private val markersWithColors = mutableListOf<Pair<Int, List<PointF>>>()
-    private var spendingInterval = 5000f //TODO: maybe add to styleable attrs
 
     private var xMarkInterval = 0
     private var yMarkInterval = 0
@@ -125,10 +128,12 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         }
     }
 
-    fun setData() {
+    fun setData(spending: List<CategorySpending>) {
+        categoriesSpending.addAll(spending)
+
         // calculate xMarksCount, yMarksCount
         xMarksCount = 6 // TODO: calculate from data
-        yMarksCount = 6 // TODO: calculate from data
+        yMarksCount = calculateYMarksCount(spending)
         requestLayout()
         invalidate()
     }
@@ -187,9 +192,9 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 0 to 5100f,
                 1 to 0f,
                 2 to 0f,
-                3 to 12456f,
+                3 to 5456f,
                 4 to 6080f,
-                5 to 24879f
+                5 to 7879f
             ),
             R.color.light_green_200 to mapOf(
                 0 to 800f,
@@ -211,7 +216,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
             // найти трату на дату [index]
             val daySpending = categorySpending[index] ?: 0f
 
-            val yPos = paddingTop + realYAxisLength - ((daySpending / spendingInterval) * yMarkInterval)
+            val yPos = paddingTop + realYAxisLength - ((daySpending / SPENDING_INTERVAL) * yMarkInterval)
             categoryMarkers.add(PointF(xPos, yPos))
         }
         markersWithColors.add(Pair(colorRes, categoryMarkers))

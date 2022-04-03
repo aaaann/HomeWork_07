@@ -15,7 +15,7 @@ class CategorySpendingBottomSheet : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        requireArguments().getParcelable<CategoryItem>(CATEGORY_ARG)?.let {
+        requireArguments().getParcelable<CategoryOverallSpending>(CATEGORY_ARG)?.let {
             view.findViewById<TextView>(R.id.category_title).text = it.category.title
             view.findViewById<TextView>(R.id.spending_text).text =
                 resources.getString(R.string.spending_text, it.amount)
@@ -34,7 +34,7 @@ class CategorySpendingBottomSheet : BottomSheetDialogFragment() {
         const val TAG = "CategorySpendingBottomSheet"
         private const val CATEGORY_ARG = "CATEGORY_ARG"
 
-        fun newInstance(category: CategoryItem): CategorySpendingBottomSheet {
+        fun newInstance(category: CategoryOverallSpending): CategorySpendingBottomSheet {
             val args = Bundle()
             args.putParcelable(CATEGORY_ARG, category)
             val fragment = CategorySpendingBottomSheet()
