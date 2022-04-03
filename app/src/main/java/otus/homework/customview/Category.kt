@@ -11,7 +11,7 @@ enum class Category(
     PRODUCTS("Продукты", R.color.yellow_400, R.drawable.ic_shopping_basket),
     HEALTH("Здоровье", R.color.green_700, R.drawable.ic_health_and_safety),
     RESTAURANTS("Кафе и рестораны", R.color.purple_200, R.drawable.ic_restaurant),
-    ALCOHOL("Алкоголь", R.color.red_100, R.drawable.ic_wine),
+    ALCOHOL("Алкоголь", R.color.pink_900, R.drawable.ic_wine),
     DELIVERY("Доставка еды", R.color.light_green_200, R.drawable.ic_delivery_dining),
     TRANSPORT("Транспорт", R.color.red_700, R.drawable.ic_trasnport),
     SPORT("Спорт", R.color.teal_200, R.drawable.ic_sports),
