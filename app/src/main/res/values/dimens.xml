@@ -8,5 +8,5 @@
     <dimen name="axis_paint_width">2dp</dimen>
     <dimen name="line_graph_amounts_text_size">14sp</dimen>
     <dimen name="line_graph_dates_text_size">14sp</dimen>
-    <dimen name="date_text_offset">6dp</dimen>
+    <dimen name="date_text_offset">8dp</dimen>
 </resources>

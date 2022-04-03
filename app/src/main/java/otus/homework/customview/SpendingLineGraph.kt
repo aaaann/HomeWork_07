@@ -59,9 +59,9 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private var dateTextOffset = 0
 
     private val gradient = LinearGradient(
-        paddingStart.toFloat(),
+        paddingStart.toFloat() + dateTextBound.width() / 2,
         paddingTop.toFloat(),
-        paddingStart.toFloat(),
+        paddingStart.toFloat() + dateTextBound.width() / 2,
         (paddingTop + realYAxisLength).toFloat(),
         context.resources.getColor(R.color.red_900, context.theme),
         context.resources.getColor(R.color.red_100, context.theme),
@@ -214,7 +214,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         resultWidth = if (widthMode == MeasureSpec.EXACTLY) {
             MeasureSpec.getSize(widthMeasureSpec)
         } else {
-            xMarkInterval * (xMarksCount - 1) + paddingStart + paddingEnd + amountTextBound.width()
+            xMarkInterval * (xMarksCount - 1) + paddingStart + paddingEnd + amountTextBound.width() + dateTextBound.width()
         }
 
 
@@ -229,7 +229,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        realXAxisLength = measuredWidth - paddingStart - paddingEnd - amountTextBound.width()
+        realXAxisLength = measuredWidth - paddingStart - paddingEnd - amountTextBound.width() - dateTextBound.width()
         realYAxisLength = measuredHeight - paddingTop - paddingBottom - dateTextOffset - dateTextBound.height()
 
         xMarkInterval = realXAxisLength / (xMarksCount - 1)
@@ -242,7 +242,8 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private fun calculateMarkersXCoordinates() {
         val allDates = getAllDatesBetweenSpendingInterval(categoriesSpending)
         allDates.forEachIndexed { index, date ->
-            datesToMarkersXCoordinates[date] = (paddingStart + xMarkInterval * index).toFloat()
+            datesToMarkersXCoordinates[date] =
+                (paddingStart + xMarkInterval * index + dateTextBound.width() / 2).toFloat()
         }
     }
 
@@ -279,16 +280,16 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private fun Canvas.drawAxis() {
         drawLine(
-            paddingStart.toFloat(),
+            paddingStart.toFloat() + dateTextBound.width() / 2,
             paddingTop + realYAxisLength.toFloat(),
-            paddingStart + realXAxisLength.toFloat(),
+            paddingStart + realXAxisLength.toFloat() + dateTextBound.width() / 2,
             paddingTop + realYAxisLength.toFloat(),
             axisPaint
         )
         drawLine(
-            paddingStart + realXAxisLength.toFloat(),
+            paddingStart + realXAxisLength.toFloat() + dateTextBound.width() / 2,
             paddingTop.toFloat(),
-            paddingStart + realXAxisLength.toFloat(),
+            paddingStart + realXAxisLength.toFloat() + dateTextBound.width() / 2,
             paddingTop + realYAxisLength.toFloat(),
             axisPaint
         )
@@ -296,7 +297,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private fun Canvas.drawGrid() {
         // draw vertical grid
-        var startX = paddingStart + xMarkInterval
+        var startX = paddingStart + xMarkInterval + dateTextBound.width() / 2
         repeat(xMarksCount - 2) {
             drawLine(
                 startX.toFloat(),
@@ -312,9 +313,9 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         var startY = paddingStart + yMarkInterval
         repeat(yMarksCount - 2) {
             drawLine(
-                paddingStart.toFloat(),
+                paddingStart.toFloat() + dateTextBound.width() / 2,
                 startY.toFloat(),
-                paddingStart + realXAxisLength.toFloat(),
+                paddingStart + realXAxisLength.toFloat() + dateTextBound.width() / 2,
                 startY.toFloat(),
                 horizontalGridPaint
             )
@@ -337,7 +338,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         amountsTexts.forEachIndexed { index, amount ->
             drawText(
                 amount,
-                paddingStart + realXAxisLength.toFloat(),
+                paddingStart + realXAxisLength.toFloat() + dateTextBound.width() / 2,
                 paddingTop + (realYAxisLength - yMarkInterval * index).toFloat(),
                 amountsTextPaint
             )
@@ -378,7 +379,10 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private fun Canvas.drawGradient(markers: List<PointF>) {
         gradientPath.reset()
-        gradientPath.moveTo(paddingStart.toFloat(), (paddingTop + realYAxisLength).toFloat())
+        gradientPath.moveTo(
+            paddingStart.toFloat() + dateTextBound.width() / 2,
+            (paddingTop + realYAxisLength).toFloat()
+        )
 
         for (marker in markers) {
             gradientPath.lineTo(marker.x, marker.y)
@@ -386,7 +390,10 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
         // close the path
         gradientPath.lineTo(markers.last().x, (paddingTop + realYAxisLength).toFloat())
-        gradientPath.lineTo(paddingStart.toFloat(), (paddingTop + realYAxisLength).toFloat())
+        gradientPath.lineTo(
+            paddingStart.toFloat() + dateTextBound.width() / 2,
+            (paddingTop + realYAxisLength).toFloat()
+        )
 
         drawPath(gradientPath, gradientPaint)
     }
