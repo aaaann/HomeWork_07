@@ -8,7 +8,7 @@ import otus.homework.customview.utils.toDateWithoutTime
 class SpendingRepositoryImpl(private val resourceWrapper: ResourceWrapper) : SpendingRepository {
     override fun getCategoriesOverallSpending(): List<CategoryOverallSpending> {
         return getSpending()
-            .map { CategoryOverallSpending(it.category.toCategory(), it.amount) }
+            .map { CategoryOverallSpending(it.category.toCategory(), it.amount.toInt()) }
             .groupingBy { it.category }.reduce { _, accumulator, element ->
                 CategoryOverallSpending(
                     accumulator.category,

@@ -144,7 +144,7 @@ class PieChartView(
         createSectorsPaths()
     }
 
-    private fun calculateDrawData(amounts: List<Float>) {
+    private fun calculateDrawData(amounts: List<Int>) {
         angles.clear()
         val amountAll = amounts.sum()
         amounts.fold(START_CIRCLE_ANGLE) { prevAngle, amount ->

@@ -6,5 +6,5 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class CategoryOverallSpending(
     val category: Category,
-    val amount: Float
+    val amount: Int
 ) : Parcelable
