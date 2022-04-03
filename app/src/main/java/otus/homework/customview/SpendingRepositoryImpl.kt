@@ -3,7 +3,7 @@ package otus.homework.customview
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import otus.homework.customview.Category.Companion.toCategory
-import java.util.Calendar
+import otus.homework.customview.utils.toDateWithoutTime
 
 class SpendingRepositoryImpl(private val resourceWrapper: ResourceWrapper) : SpendingRepository {
     override fun getCategoriesOverallSpending(): List<CategoryOverallSpending> {
@@ -33,13 +33,4 @@ class SpendingRepositoryImpl(private val resourceWrapper: ResourceWrapper) : Spe
         val spendingString = resourceWrapper.openRawResource(R.raw.payload)
         return Gson().fromJson(spendingString, object : TypeToken<List<SpendingModel>>() {}.type)
     }
-
-    private fun Long.toDateWithoutTime(): Long = Calendar.getInstance()
-        .also { calendar ->
-            calendar.timeInMillis = this
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-            calendar.set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
 }

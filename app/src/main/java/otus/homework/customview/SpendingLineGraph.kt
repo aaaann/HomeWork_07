@@ -17,6 +17,8 @@ import androidx.core.content.res.use
 import otus.homework.customview.SpendingLineGraphHelper.SPENDING_INTERVAL
 import otus.homework.customview.SpendingLineGraphHelper.calculateXMarksCount
 import otus.homework.customview.SpendingLineGraphHelper.calculateYMarksCount
+import otus.homework.customview.SpendingLineGraphHelper.getAllDatesBetweenSpendingInterval
+import otus.homework.customview.SpendingLineGraphHelper.getCategoryColorToSpendingPerDate
 
 class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
@@ -24,7 +26,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private var xMarksCount = 0
     private var yMarksCount = 0
-    private val markersXCoordinates = mutableListOf<Float>()
+    private val datesToMarkersXCoordinates = mutableMapOf<Long, Float>()
     private val markersWithColors = mutableListOf<Pair<Int, List<PointF>>>()
 
     private var xMarkInterval = 0
@@ -82,7 +84,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     }
 
     private val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
+        style = Paint.Style.FILL_AND_STROKE
         alpha = 100
         shader = gradient
     }
@@ -125,6 +127,10 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         }
 
         linePaint.apply {
+            strokeWidth = axisPaintWidth * 2
+        }
+
+        gradientPaint.apply {
             strokeWidth = axisPaintWidth * 2
         }
     }
@@ -181,44 +187,27 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     }
 
     private fun calculateMarkersXCoordinates() {
-        for (i in 0 until xMarksCount) {
-            markersXCoordinates.add((paddingStart + xMarkInterval * i).toFloat())
+        val allDates = getAllDatesBetweenSpendingInterval(categoriesSpending)
+        allDates.forEachIndexed { index, date ->
+            datesToMarkersXCoordinates[date] = (paddingStart + xMarkInterval * index).toFloat()
         }
     }
 
     private fun fillMarkersWithColors() {
-        // TODO: create based on real data
-        val categoriesSpending = mapOf(
-            R.color.red_700 to mapOf(
-                0 to 5100f,
-                1 to 0f,
-                2 to 0f,
-                3 to 5456f,
-                4 to 10900f,
-                5 to 7879f
-            ),
-            R.color.light_green_200 to mapOf(
-                0 to 800f,
-                1 to 3800f,
-                2 to 45f,
-                3 to 2367f,
-                4 to 0f,
-                5 to 1680f
-            )
-        )
+        val categoriesSpending = getCategoryColorToSpendingPerDate(categoriesSpending)
         categoriesSpending.forEach {
             calculateMarkers(it.key, it.value)
         }
     }
 
-    private fun calculateMarkers(colorRes: Int, categorySpending: Map<Int, Float>) {
+    private fun calculateMarkers(colorRes: Int, categorySpending: Map<Long, Float>) {
         val categoryMarkers = mutableListOf<PointF>()
-        markersXCoordinates.forEachIndexed { index, xPos ->
-            // найти трату на дату [index]
-            val daySpending = categorySpending[index] ?: 0f
+        datesToMarkersXCoordinates.forEach {
+            // найти трату на дату [it.key]
+            val daySpending = categorySpending[it.key] ?: 0f
 
             val yPos = paddingTop + realYAxisLength - ((daySpending / SPENDING_INTERVAL) * yMarkInterval)
-            categoryMarkers.add(PointF(xPos, yPos))
+            categoryMarkers.add(PointF(it.value, yPos))
         }
         markersWithColors.add(Pair(colorRes, categoryMarkers))
     }
@@ -229,6 +218,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         canvas?.apply {
             drawAxis()
             drawGrid()
+            drawAllGradients()
             drawAllLines()
         }
     }
@@ -278,6 +268,12 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         }
     }
 
+    private fun Canvas.drawAllGradients() {
+        markersWithColors.forEach {
+            drawGradient(it.second)
+        }
+    }
+
     private fun Canvas.drawAllLines() {
         markersWithColors.forEach {
             drawMarkersAndLine(it.first, it.second)
@@ -298,12 +294,10 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
             drawCircle(
                 marker.x,
                 marker.y,
-                5f,
+                MARKER_RADIUS,
                 linePaint
             )
         }
-
-        drawGradient(markers)
     }
 
     private fun Canvas.drawGradient(markers: List<PointF>) {
@@ -323,5 +317,6 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     private companion object {
         const val TAG = "SpendingLineGraph"
+        const val MARKER_RADIUS = 3f
     }
 }
