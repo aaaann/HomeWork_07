@@ -48,6 +48,15 @@ object SpendingLineGraphHelper {
         return setWithDates
     }
 
+    fun getAllAmountsTexts(spending: List<CategorySpending>): List<Int> {
+        val allAmounts = mutableListOf<Int>()
+        val initialAmount = 0
+        repeat(calculateYMarksCount(spending)) {
+            allAmounts.add(initialAmount + SPENDING_INTERVAL * it)
+        }
+        return allAmounts
+    }
+
     /**
      * Получить [Triple] с
      * минимальной датой, максимальной датой

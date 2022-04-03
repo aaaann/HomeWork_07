@@ -7,6 +7,7 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.util.Log
@@ -17,6 +18,7 @@ import androidx.core.content.res.use
 import otus.homework.customview.SpendingLineGraphHelper.SPENDING_INTERVAL
 import otus.homework.customview.SpendingLineGraphHelper.calculateXMarksCount
 import otus.homework.customview.SpendingLineGraphHelper.calculateYMarksCount
+import otus.homework.customview.SpendingLineGraphHelper.getAllAmountsTexts
 import otus.homework.customview.SpendingLineGraphHelper.getAllDatesBetweenSpendingInterval
 import otus.homework.customview.SpendingLineGraphHelper.getCategoryColorToSpendingPerDate
 
@@ -28,13 +30,14 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private var yMarksCount = 0
     private val datesToMarkersXCoordinates = mutableMapOf<Long, Float>()
     private val markersWithColors = mutableListOf<Pair<Int, List<PointF>>>()
+    private val amountsTexts = mutableListOf<String>()
 
     private var xMarkInterval = 0
     private var yMarkInterval = 0
     private var axisPaintWidth = 0f
 
-    var realXAxisLength = 0
-    var realYAxisLength = 0
+    private var realXAxisLength = 0
+    private var realYAxisLength = 0
 
     @ColorInt
     private var axisPaintColor = 0
@@ -44,6 +47,11 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     @ColorInt
     private var yGridPaintColor = 0
+
+    @ColorInt
+    private var textColor = 0
+    private var marksTextSize = 0f
+    private val amountTextBound = Rect()
 
     private val gradient = LinearGradient(
         paddingStart.toFloat(),
@@ -89,6 +97,8 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         shader = gradient
     }
 
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
     init {
         context.obtainStyledAttributes(attributeSet, R.styleable.SpendingLineGraph).use { typedArray ->
             axisPaintColor = typedArray.getColor(
@@ -103,11 +113,16 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 R.styleable.SpendingLineGraph_axis_color,
                 context.resources.getColor(R.color.blue_gray_400, context.theme)
             )
+            textColor = typedArray.getColor(
+                R.styleable.SpendingLineGraph_text_color,
+                context.resources.getColor(R.color.blue_gray_400, context.theme)
+            )
         }
 
         xMarkInterval = context.resources.getDimensionPixelSize(R.dimen.x_mark_interval)
         yMarkInterval = context.resources.getDimensionPixelSize(R.dimen.y_mark_interval)
         axisPaintWidth = context.resources.getDimension(R.dimen.axis_paint_width)
+        marksTextSize = context.resources.getDimension(R.dimen.line_graph_text_size)
 
         configurePaints()
     }
@@ -133,6 +148,11 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         gradientPaint.apply {
             strokeWidth = axisPaintWidth * 2
         }
+
+        textPaint.apply {
+            textSize = marksTextSize
+            color = textColor
+        }
     }
 
     fun setData(spending: List<CategorySpending>) {
@@ -141,8 +161,19 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         // calculate xMarksCount, yMarksCount
         xMarksCount = calculateXMarksCount(spending)
         yMarksCount = calculateYMarksCount(spending)
+        fillAmountsTexts(spending)
         requestLayout()
         invalidate()
+    }
+
+    private fun fillAmountsTexts(spending: List<CategorySpending>) {
+        val allAmounts: List<String> = getAllAmountsTexts(spending)
+            .map {
+                resources.getString(R.string.amount_text, it)
+                    .also { amountString -> amountsTexts.add(amountString) }
+            }
+        val longestString: String = allAmounts.maxByOrNull { it.length } ?: allAmounts.last()
+        textPaint.getTextBounds(longestString, 0, longestString.length, amountTextBound)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -161,7 +192,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         resultWidth = if (widthMode == MeasureSpec.EXACTLY) {
             MeasureSpec.getSize(widthMeasureSpec)
         } else {
-            xMarkInterval * (xMarksCount - 1) + paddingStart + paddingEnd
+            xMarkInterval * (xMarksCount - 1) + paddingStart + paddingEnd + amountTextBound.width()
         }
 
 
@@ -176,7 +207,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        realXAxisLength = measuredWidth - paddingStart - paddingEnd
+        realXAxisLength = measuredWidth - paddingStart - paddingEnd - amountTextBound.width()
         realYAxisLength = measuredHeight - paddingTop - paddingBottom
 
         xMarkInterval = realXAxisLength / (xMarksCount - 1)
@@ -218,6 +249,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         canvas?.apply {
             drawAxis()
             drawGrid()
+            drawTexts()
             drawAllGradients()
             drawAllLines()
         }
@@ -265,6 +297,18 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                 horizontalGridPaint
             )
             startY += yMarkInterval
+        }
+    }
+
+    private fun Canvas.drawTexts() {
+        // текста по оси Y
+        amountsTexts.forEachIndexed { index, amount ->
+            drawText(
+                amount,
+                paddingStart + realXAxisLength.toFloat(),
+                paddingTop + (realYAxisLength - yMarkInterval * index).toFloat(),
+                textPaint
+            )
         }
     }
 
