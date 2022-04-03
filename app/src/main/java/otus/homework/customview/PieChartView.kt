@@ -166,7 +166,7 @@ class PieChartView(
         val arcCenterY =
             (arcRect.centerY() - cos(Math.toRadians(arcCenterDegree.toDouble())) * (radius + percentTextOffset)).toFloat()
 
-        val percentString = "${percent.roundToInt()} %"
+        val percentString = " ${percent.roundToInt()} %"
         percentsPaint.getTextBounds(percentString, 0, percentString.length, percentTextRect)
 
         val percentTextPointF = PointF()
