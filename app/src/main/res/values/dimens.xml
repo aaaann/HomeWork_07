@@ -6,5 +6,7 @@
     <dimen name="x_mark_interval">64dp</dimen>
     <dimen name="y_mark_interval">36dp</dimen>
     <dimen name="axis_paint_width">2dp</dimen>
-    <dimen name="line_graph_text_size">14sp</dimen>
+    <dimen name="line_graph_amounts_text_size">14sp</dimen>
+    <dimen name="line_graph_dates_text_size">14sp</dimen>
+    <dimen name="date_text_offset">6dp</dimen>
 </resources>

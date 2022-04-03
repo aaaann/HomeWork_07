@@ -21,6 +21,7 @@ import otus.homework.customview.SpendingLineGraphHelper.calculateYMarksCount
 import otus.homework.customview.SpendingLineGraphHelper.getAllAmountsTexts
 import otus.homework.customview.SpendingLineGraphHelper.getAllDatesBetweenSpendingInterval
 import otus.homework.customview.SpendingLineGraphHelper.getCategoryColorToSpendingPerDate
+import otus.homework.customview.utils.toDateString
 
 class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
@@ -31,6 +32,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     private val datesToMarkersXCoordinates = mutableMapOf<Long, Float>()
     private val markersWithColors = mutableListOf<Pair<Int, List<PointF>>>()
     private val amountsTexts = mutableListOf<String>()
+    private val datesTexts = mutableListOf<String>()
 
     private var xMarkInterval = 0
     private var yMarkInterval = 0
@@ -50,8 +52,11 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
 
     @ColorInt
     private var textColor = 0
-    private var marksTextSize = 0f
+    private var amountsMarksTextSize = 0f
+    private var datesMarksTextSize = 0f
     private val amountTextBound = Rect()
+    private val dateTextBound = Rect()
+    private var dateTextOffset = 0
 
     private val gradient = LinearGradient(
         paddingStart.toFloat(),
@@ -97,7 +102,8 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         shader = gradient
     }
 
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val amountsTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val datesTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
         context.obtainStyledAttributes(attributeSet, R.styleable.SpendingLineGraph).use { typedArray ->
@@ -122,7 +128,9 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         xMarkInterval = context.resources.getDimensionPixelSize(R.dimen.x_mark_interval)
         yMarkInterval = context.resources.getDimensionPixelSize(R.dimen.y_mark_interval)
         axisPaintWidth = context.resources.getDimension(R.dimen.axis_paint_width)
-        marksTextSize = context.resources.getDimension(R.dimen.line_graph_text_size)
+        amountsMarksTextSize = context.resources.getDimension(R.dimen.line_graph_amounts_text_size)
+        datesMarksTextSize = context.resources.getDimension(R.dimen.line_graph_dates_text_size)
+        dateTextOffset = context.resources.getDimensionPixelSize(R.dimen.date_text_offset)
 
         configurePaints()
     }
@@ -149,8 +157,12 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
             strokeWidth = axisPaintWidth * 2
         }
 
-        textPaint.apply {
-            textSize = marksTextSize
+        amountsTextPaint.apply {
+            textSize = amountsMarksTextSize
+            color = textColor
+        }
+        datesTextPaint.apply {
+            textSize = datesMarksTextSize
             color = textColor
         }
     }
@@ -158,10 +170,10 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     fun setData(spending: List<CategorySpending>) {
         categoriesSpending.addAll(spending)
 
-        // calculate xMarksCount, yMarksCount
         xMarksCount = calculateXMarksCount(spending)
         yMarksCount = calculateYMarksCount(spending)
         fillAmountsTexts(spending)
+        fillDatesTexts(spending)
         requestLayout()
         invalidate()
     }
@@ -173,7 +185,17 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
                     .also { amountString -> amountsTexts.add(amountString) }
             }
         val longestString: String = allAmounts.maxByOrNull { it.length } ?: allAmounts.last()
-        textPaint.getTextBounds(longestString, 0, longestString.length, amountTextBound)
+        amountsTextPaint.getTextBounds(longestString, 0, longestString.length, amountTextBound)
+    }
+
+    private fun fillDatesTexts(spending: List<CategorySpending>) {
+        val allDates: List<String> = getAllDatesBetweenSpendingInterval(spending)
+            .map {
+                it.toDateString()
+                    .also { dateString -> datesTexts.add(dateString) }
+            }
+        val oneDateString = allDates.first()
+        datesTextPaint.getTextBounds(oneDateString, 0, oneDateString.length, dateTextBound)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -199,7 +221,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
         resultHeight = if (heightMode == MeasureSpec.EXACTLY) {
             MeasureSpec.getSize(heightMeasureSpec)
         } else {
-            yMarkInterval * (yMarksCount - 1) + paddingTop + paddingEnd
+            yMarkInterval * (yMarksCount - 1) + paddingTop + paddingEnd + dateTextOffset + dateTextBound.height()
         }
 
         setMeasuredDimension(resultWidth, resultHeight)
@@ -208,7 +230,7 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         realXAxisLength = measuredWidth - paddingStart - paddingEnd - amountTextBound.width()
-        realYAxisLength = measuredHeight - paddingTop - paddingBottom
+        realYAxisLength = measuredHeight - paddingTop - paddingBottom - dateTextOffset - dateTextBound.height()
 
         xMarkInterval = realXAxisLength / (xMarksCount - 1)
         yMarkInterval = realYAxisLength / (yMarksCount - 1)
@@ -301,13 +323,23 @@ class SpendingLineGraph(context: Context, attributeSet: AttributeSet?) : View(co
     }
 
     private fun Canvas.drawTexts() {
+        // текста по оси X
+        datesTexts.forEachIndexed { index, date ->
+            drawText(
+                date,
+                (paddingStart + xMarkInterval * index).toFloat(),
+                (paddingTop + realYAxisLength + dateTextBound.height() + dateTextOffset).toFloat(),
+                datesTextPaint.apply { textSize = datesMarksTextSize }
+            )
+        }
+
         // текста по оси Y
         amountsTexts.forEachIndexed { index, amount ->
             drawText(
                 amount,
                 paddingStart + realXAxisLength.toFloat(),
                 paddingTop + (realYAxisLength - yMarkInterval * index).toFloat(),
-                textPaint
+                amountsTextPaint
             )
         }
     }
